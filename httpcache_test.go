@@ -159,6 +159,15 @@ func setup() {
 			}
 		}
 	}))
+
+	mux.HandleFunc("/json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=3600")
+		w.Header().Set("Content-Type", "application/json")
+		// This will force using bufio.Read() instead of chunkedReader.Read()
+		// to miss the EOF.
+		w.Header().Set("Transfer-encoding", "identity")
+		json.NewEncoder(w).Encode(map[string]string{"k": "v"})
+	}))
 }
 
 func teardown() {

@@ -192,8 +192,17 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 				cachedResp.Header[header] = resp.Header[header]
 			}
 			resp = cachedResp
+			// The original response body is no longer needed.
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 		} else if (err != nil || (cachedResp != nil && resp.StatusCode >= 500)) &&
 			req.Method == "GET" && canStaleOnError(cachedResp.Header, req.Header) {
+			// The original response body is no longer needed.
+			if resp != nil && resp.Body != nil {
+				io.Copy(io.Discard, resp.Body)
+				resp.Body.Close()
+			}
+
 			// In case of transport failure and stale-if-error activated, returns cached content
 			// when available
 			return cachedResp, nil
