@@ -191,10 +191,11 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 			for _, header := range endToEndHeaders {
 				cachedResp.Header[header] = resp.Header[header]
 			}
-			resp = cachedResp
 			// The original response body is no longer needed.
 			io.Copy(io.Discard, resp.Body)
 			resp.Body.Close()
+			// Replace with the cached response
+			resp = cachedResp
 		} else if (err != nil || (cachedResp != nil && resp.StatusCode >= 500)) &&
 			req.Method == "GET" && canStaleOnError(cachedResp.Header, req.Header) {
 			// The original response body is no longer needed.
